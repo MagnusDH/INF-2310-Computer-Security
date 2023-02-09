@@ -10,8 +10,12 @@ port_number = 5000
 client_socket = socket.socket()
 
 #Try to connect to a server
-client_socket.connect((host_name, port_number))
-print("Connected to server!")
+try:
+    client_socket.connect((host_name, port_number))
+    print("Connected to server!\n")
+except:
+    print("Could not connect to server:     ", host_name, "\n")
+    
 
 #User can write a message
 message = input("Write a message to server: ")
@@ -22,12 +26,12 @@ while True:
 
     #Close connection if requested
     if (message.lower() == "close"):
-        print("Closing the connection...")
+        print("Closing connection...")
         break
     else:
         #Wait to receive a response
         response_data = client_socket.recv(1024).decode()
-        print("Response from server:", response_data)
+        print("Response from server:", response_data, "\n")
 
         #User can write new message
         message = input("Write message to server: ")

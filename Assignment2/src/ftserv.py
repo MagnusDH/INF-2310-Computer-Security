@@ -24,12 +24,12 @@ while True:
     #Receive data
     print("Waiting to receive data...")
     receive_data = connection.recv(1024).decode()
-    print("Received data:    ", receive_data)
+    print("Received data:    ", receive_data, "\n")
     
     if receive_data.lower() == "close":
-        response = "Closing connection"
-        connection.send(response.encode())
+        print("Closing connection...")
         break
+
     else:
         #Send data from server
         response = "Got your message"
