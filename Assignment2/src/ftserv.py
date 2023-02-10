@@ -1,6 +1,11 @@
-#Server side
-
 import socket
+import time
+from Crypto.Cipher import AES
+
+
+server_public_key = "53rv3r Pu8l1c k3y"
+server_private_key = "53rv3r pr1v4t3 k3y"
+client_public_key = ""
 
 #Obtain the name of the host (magnus-linux)
 server_host_name = socket.gethostname()
@@ -13,18 +18,36 @@ server_socket = socket.socket()
 server_socket.bind((server_host_name, port_number))
 
 #Listen for 5 connections
+print("Waiting for clients to connect...\n")
 server_socket.listen(5)
 
 #When connection request is recieved, connect to client
-connection, address = server_socket.accept()
-print("Made connection with address:", address, "\n")
+try:
+    connection, address = server_socket.accept()
+    print("Got connection request. Establishing connection with: ", address, "\n")
+    message = "request accepted"
+    connection.send(message.encode())
+    print("CONNECTION ESTABLISHED!\n")
+except:
+    print("Could not establish connection with client...")
 
-#Receive or send data
+#Receive client_public_key
+print("Waiting to receive public key...\n")
+client_response = connection.recv(1024).decode()
+print("Got client pulic key: ", client_response, "\n")
+client_public_key = client_response
+
+#send server_public_key
+print("Sending server_public_key...\n")
+message = server_public_key
+connection.send(message.encode())
+
+#Receive and send data
 while True:
     #Receive data
-    print("Waiting to receive data...")
+    print("Waiting for client to respond...\n")
     receive_data = connection.recv(1024).decode()
-    print("Received data:    ", receive_data, "\n")
+    print("Response from client: ", receive_data, "\n")
     
     if receive_data.lower() == "close":
         print("Closing connection...")
@@ -32,7 +55,7 @@ while True:
 
     else:
         #Send data from server
-        response = "Got your message"
+        response = input("Response to client: ")
         connection.send(response.encode())
 
 #Close the connection
