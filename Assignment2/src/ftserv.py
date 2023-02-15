@@ -2,12 +2,14 @@
 import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Util.Padding import pad
+# from Crypto.Random import get_random_bytes
 
-key = RSA.generate(2048)
-server_private_key = key.exportKey() 
-server_public_key = key.publickey().exportKey()
+keyPair = RSA.generate(3072)
+server_private_key = keyPair.exportKey() 
+server_public_key = keyPair.publickey()#.exportKey()
 client_public_key = None
-session_key = None
+session_key = b'This is the session key'
 
 
 def create_socket(port_number):
@@ -29,14 +31,14 @@ def connect_to_client():
    -Send accept message back to client"""
     try:
         connection, address = server_socket.accept()
-        print("Got connection request. Establishing connection with: ", address, "\n")
+        print("\nGot connection request. Establishing connection with: ", address)
         message = "request accepted"
         connection.send(message.encode())
-        print("CONNECTION ESTABLISHED!\n")
+        print("\nCONNECTION ESTABLISHED!")
         return connection, address
 
     except:
-        print("Could not establish connection with client...")
+        print("\nCould not establish connection with client...")
 
 def receive_and_send_data():
 
@@ -59,7 +61,7 @@ def receive_and_send_data():
 #START
 
 #Create socket
-server_socket = create_socket(5001)
+server_socket = create_socket(5000)
 
 #Listen for connections
 print("\nWaiting for clients to connect...")
@@ -70,21 +72,26 @@ connection, address = connect_to_client()
 
 #Receive client_public_key
 print("\nReceiving client public key...")
-client_public_key = connection.recv(1024)
+client_public_key = RSA.import_key(connection.recv(2048))
 
-#send server_public_key
-print("\nSending server_public_key...")
-connection.send(server_public_key)
+#Encrypt session key with RSA
+print("\nEncrypting session key")
+encryptor = PKCS1_OAEP.new(client_public_key)
+encrypted_session_key = encryptor.encrypt(session_key)
 
-#receive and decrypt session key
-print("TEST MAFAKKA")
+#Send session key
+print("\nSending encrypted session key")
+connection.send(encrypted_session_key)
 
-encrypted_session_key = connection.recv(2048)
-print("ENCRYPTED SESSION KEY: ", encrypted_session_key)
+#WORK FROM HERE
 
-# cipher_rsa = PKCS1_OAEP.new(server_private_key)
-# session_key = cipher_rsa.decrypt(encrypted_session_key)
-# print("\nSESSION KEY: ", session_key)
+#Encrypt serverFile with AES and session key
+serverFile = b"Send this file"
+cipher = AES.new(session_key, AES.MODE_CFB)
+ciphered_data = cipher.encrypt(serverFile)
+
+#Send encrypted file
+connection.send(ciphered_data)
 
 
 
@@ -96,9 +103,9 @@ print("ENCRYPTED SESSION KEY: ", encrypted_session_key)
 #client -> server: connection request
 #client <- server: accept request
 #Client -> server: send public key
-#client <- server: send public key
-#client -> server: session key
-#client <_ server: file
+#Client <- server: encrypt and send session key
+#client <- server: encrypted file
+
 
 
 

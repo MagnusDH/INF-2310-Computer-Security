@@ -2,13 +2,11 @@ import socket
 from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
+import sys
 
-key = RSA.generate(2048)
-client_private_key = key.exportKey() 
-client_public_key = key.publickey().exportKey()
-server_public_key = None
-session_key = get_random_bytes(16)
-print("\nSESSION KEY: ", session_key)
+keyPair = RSA.generate(3072)
+client_public_key = keyPair.publickey().export_key()
+session_key = None
 
 def connect_to_server(host_name, port_number):
     print("Sending connection request to server: ", host_name, "\n")
@@ -56,7 +54,7 @@ def send_and_receive_data():
 
 #Obtain the name of the client (magnus-linux)
 host_name = socket.gethostname()
-port_number = 5001
+port_number = 5000
 
 #Get socket instance
 client_socket = socket.socket()
@@ -67,59 +65,30 @@ connect_to_server(host_name, port_number)
 print("Sending public key...\n")
 client_socket.send(client_public_key)
 
-#Receive server_public_key
-print("\nReceiving server_public_key")
-server_public_key = client_socket.recv(2048)
+#Receive encrypted session key from server
+print("\nReceiving encrypted session key")
+encrypted_session_key = client_socket.recv(2048)
 
+#Decrypt session key with clients private key
+decryptor = PKCS1_OAEP.new(keyPair)
+decrypted = decryptor.decrypt(encrypted_session_key)
+print("\nDecrypted session key:\n", decrypted)
 
-#Encrypt session key with server_public_key and send
-cipher_rsa = PKCS1_OAEP.new(server_public_key)
-encrypted_session_key = cipher_rsa.encrypt(session_key)
-client_socket.send(encrypted_session_key)
-print("ENCRYPTED SESSION KEY:   ", encrypted_session_key)
+#Receive file encrypted with AES
+encrypted_file = client_socket.recv(2048)
 
-# #receive file via AES
+#Decrypt file with session key
+iv = file_in.read()
+file_in = open("input_file.txt, rb")
 
-
-
-
-
-
-
-
+cipher = AES.new(session_key, AES.MODE_CFB, iv = iv)
 
 
 
 
 
+clientFile.close()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-#Create a socket object to send and receive data
-# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# #Make the socket connect to a server
-# client_socket.connect((socket.gethostname(), 1234))
-
-# #Receive a message that is sent to us
-# message = ""
-
-# while True:
-#     msg = client_socket.recv(8)             #Receive 32 bytes at a time
-#     if(len(msg) <= 0):
-#         break
-#     else:
-#         message += msg.decode("utf-8)")     #Add received bytes to message
-
-# print(message)
+#Write file to memory
