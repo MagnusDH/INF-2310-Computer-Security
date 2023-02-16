@@ -101,4 +101,4 @@ print("\nNONCE:\n", type(nonce))
 print("\nTAG:\n", tag)
 print("\nENCRYPTED_FILE:\n", encrypted_file)
 
-client_socket.close()
+client_socket.close() 
