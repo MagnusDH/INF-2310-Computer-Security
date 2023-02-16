@@ -1,7 +1,6 @@
 import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
-# from Crypto.Random import get_random_bytes
 
 keyPair = RSA.generate(3072)
 client_public_key = keyPair.publickey().exportKey()
@@ -49,6 +48,7 @@ def send_and_receive_data():
         response_data = client_socket.recv(1024).decode()
         print("Response from server: ", response_data, "\n")
 
+
 #START
 
 #Obtain the name of the client (magnus-linux)
@@ -91,16 +91,14 @@ client_socket.send(b"OK")
 encrypted_file = client_socket.recv(2048)
 
 
-print("\nNONCE:\n", nonce)
+#Decrypting
+# clientFile = open("clientFile.txt", "wb")
+# cipher = AES.new(session_key, AES.MODE_EAX, nonce)
+# original_data = cipher.decrypt_and_verify(encrypted_file, tag)
+# clientFile.write(original_data)
+
+print("\nNONCE:\n", type(nonce))
 print("\nTAG:\n", tag)
 print("\nENCRYPTED_FILE:\n", encrypted_file)
-
-#Decrypting
-clientFile = open("clientFile.txt", "wb")
-
-cipher = AES.new(session_key, AES.MODE_EAX, nonce)
-original_data = cipher.decrypt_and_verify(encrypted_file, tag)
-
-clientFile.write(original_data)
 
 client_socket.close()

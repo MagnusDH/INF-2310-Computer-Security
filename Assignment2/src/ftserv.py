@@ -2,12 +2,10 @@
 import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
-# from Crypto.Util.Padding import pad
-# from Crypto.Random import get_random_bytes
 
 keyPair = RSA.generate(3072)
 server_private_key = keyPair.exportKey() 
-server_public_key = keyPair.publickey()#.exportKey()
+server_public_key = keyPair.publickey()
 client_public_key = None
 session_key = b"ThisIsSessionKey"
 
@@ -83,23 +81,20 @@ encrypted_session_key = encryptor.encrypt(session_key)
 print("\nSending encrypted session key")
 connection.send(encrypted_session_key)
 
-
-#WORK FROM HERE
-
 #Open file, read lines and convert to bytes
 serverFile = open("serverFile.txt", "r")
 fileLines = serverFile.read()
 serverFile.close()
-# connection.send(fileLines.encode("utf-8"))
 
 #Encrypt serverFile with AES and session key
 cipher = AES.new(session_key, AES.MODE_EAX)
 nonce = cipher.nonce
 encrypted_file, tag = cipher.encrypt_and_digest(fileLines.encode("utf-8"))
 # ciphered_data = cipher.encrypt(fileLines.encode("utf-8"))
+#WORK FROM HERE
 
 #send nonce
-connection.send(cipher.nonce)
+connection.send(nonce)
 
 #wait for response
 connection.recv(1024)
@@ -115,12 +110,10 @@ connection.send(encrypted_file)
 
 
 # Decrypting
-# clientFile = open("clientFile.txt", "wb")
-
-# cipher2 = AES.new(session_key, AES.MODE_EAX, nonce)
-# original_data = cipher2.decrypt_and_verify(encrypted_file, tag)
-
-# clientFile.write(original_data)
+clientFile = open("clientFile.txt", "wb")
+cipher2 = AES.new(session_key, AES.MODE_EAX, nonce)
+original_data = cipher2.decrypt_and_verify(encrypted_file, tag)
+clientFile.write(original_data)
 
 
 print("\nNONCE:\n", cipher.nonce)
