@@ -2,14 +2,14 @@
 import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
-from Crypto.Util.Padding import pad
-# from Crypto.Random import get_random_bytes
+# from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
 
 keyPair = RSA.generate(3072)
 server_private_key = keyPair.exportKey() 
 server_public_key = keyPair.publickey()#.exportKey()
 client_public_key = None
-session_key = b'This is the session key'
+session_key = b"ThisIsSessionKey"
 
 
 def create_socket(port_number):
@@ -72,7 +72,7 @@ connection, address = connect_to_client()
 
 #Receive client_public_key
 print("\nReceiving client public key...")
-client_public_key = RSA.import_key(connection.recv(2048))
+client_public_key = RSA.importKey(connection.recv(2048))
 
 #Encrypt session key with RSA
 print("\nEncrypting session key")
@@ -83,17 +83,23 @@ encrypted_session_key = encryptor.encrypt(session_key)
 print("\nSending encrypted session key")
 connection.send(encrypted_session_key)
 
+
+
 #WORK FROM HERE
+#Open file, read lines and convert to bytes
+serverFile = open("serverFile.txt", "r")
+fileLines = serverFile.read()
+serverFile.close()
+# connection.send(fileLines.encode("utf-8"))
 
 #Encrypt serverFile with AES and session key
-serverFile = b"Send this file"
-cipher = AES.new(session_key, AES.MODE_CFB)
-ciphered_data = cipher.encrypt(serverFile)
+cipher = AES.new(session_key, AES.MODE_EAX)
+ciphered_data, tag = cipher.encrypt_and_digest(fileLines)
+# cipher.nonce
+# print("\nChipered data type: ", type(ciphered_data))
 
-#Send encrypted file
-connection.send(ciphered_data)
-
-
+# #Send encrypted file
+# connection.send(ciphered_data)
 
 
 

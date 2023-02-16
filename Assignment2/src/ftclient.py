@@ -5,7 +5,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 import sys
 
 keyPair = RSA.generate(3072)
-client_public_key = keyPair.publickey().export_key()
+client_public_key = keyPair.publickey().exportKey()
 session_key = None
 
 def connect_to_server(host_name, port_number):
@@ -72,22 +72,30 @@ encrypted_session_key = client_socket.recv(2048)
 #Decrypt session key with clients private key
 decryptor = PKCS1_OAEP.new(keyPair)
 decrypted = decryptor.decrypt(encrypted_session_key)
-print("\nDecrypted session key:\n", decrypted)
+print("\nDecrypted session key: ", decrypted)
+
+#Receive list
+sendlist = client_socket.recv(2048).decode()
+
+print(sendlist)
+
+
+client_socket.close()
 
 #Receive file encrypted with AES
-encrypted_file = client_socket.recv(2048)
+# encrypted_file = client_socket.recv(2048)
 
-#Decrypt file with session key
-iv = file_in.read()
-file_in = open("input_file.txt, rb")
+# #Decrypt file with session key
+# iv = file_in.read()
+# file_in = open("input_file.txt, rb")
 
-cipher = AES.new(session_key, AES.MODE_CFB, iv = iv)
-
-
+# cipher = AES.new(session_key, AES.MODE_CFB, iv = iv)
 
 
 
-clientFile.close()
+
+
+# clientFile.close()
 
 
 
