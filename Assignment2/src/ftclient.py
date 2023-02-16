@@ -1,8 +1,7 @@
 import socket
-from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
-import sys
+# from Crypto.Random import get_random_bytes
 
 keyPair = RSA.generate(3072)
 client_public_key = keyPair.publickey().exportKey()
@@ -74,29 +73,34 @@ decryptor = PKCS1_OAEP.new(keyPair)
 decrypted = decryptor.decrypt(encrypted_session_key)
 print("\nDecrypted session key: ", decrypted)
 
-#Receive list
-sendlist = client_socket.recv(2048).decode()
+#WORK FROM HERE
 
-print(sendlist)
+#Receive nonce
+nonce = client_socket.recv(2048)
 
+#Send response
+client_socket.send(b"OK")
+
+#Receive tag
+tag = client_socket.recv(2048)
+
+#Send response
+client_socket.send(b"OK")
+
+#Receive encrypted file
+encrypted_file = client_socket.recv(2048)
+
+
+print("\nNONCE:\n", nonce)
+print("\nTAG:\n", tag)
+print("\nENCRYPTED_FILE:\n", encrypted_file)
+
+#Decrypting
+clientFile = open("clientFile.txt", "wb")
+
+cipher = AES.new(session_key, AES.MODE_EAX, nonce)
+original_data = cipher.decrypt_and_verify(encrypted_file, tag)
+
+clientFile.write(original_data)
 
 client_socket.close()
-
-#Receive file encrypted with AES
-# encrypted_file = client_socket.recv(2048)
-
-# #Decrypt file with session key
-# iv = file_in.read()
-# file_in = open("input_file.txt, rb")
-
-# cipher = AES.new(session_key, AES.MODE_CFB, iv = iv)
-
-
-
-
-
-# clientFile.close()
-
-
-
-#Write file to memory
