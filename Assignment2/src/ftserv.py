@@ -109,16 +109,16 @@ connection.recv(1024)
 connection.send(encrypted_file)
 
 
-# Decrypting
-clientFile = open("clientFile.txt", "wb")
-cipher2 = AES.new(session_key, AES.MODE_EAX, nonce)
-original_data = cipher2.decrypt_and_verify(encrypted_file, tag)
-clientFile.write(original_data)
+# # Decrypting
+# clientFile = open("clientFile.txt", "wb")
+# cipher2 = AES.new(session_key, AES.MODE_EAX, nonce)
+# original_data = cipher2.decrypt_and_verify(encrypted_file, tag)
+# clientFile.write(original_data)
 
 
-print("\nNONCE:\n", cipher.nonce)
-print("\nTAG:\n", tag)
-print("\nENCRYPTED_FILE:\n", encrypted_file)
+# print("\nNONCE:\n", cipher.nonce)
+# print("\nTAG:\n", tag)
+# print("\nENCRYPTED_FILE:\n", encrypted_file)
 
 
         #FLOW OF PROGRAM

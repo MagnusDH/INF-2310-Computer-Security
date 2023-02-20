@@ -4,7 +4,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 
 keyPair = RSA.generate(3072)
 client_public_key = keyPair.publickey().exportKey()
-session_key = None
+# session_key = None
 
 def connect_to_server(host_name, port_number):
     print("Sending connection request to server: ", host_name, "\n")
@@ -71,6 +71,7 @@ encrypted_session_key = client_socket.recv(2048)
 #Decrypt session key with clients private key
 decryptor = PKCS1_OAEP.new(keyPair)
 decrypted = decryptor.decrypt(encrypted_session_key)
+session_key = decrypted
 print("\nDecrypted session key: ", decrypted)
 
 #WORK FROM HERE
@@ -92,13 +93,13 @@ encrypted_file = client_socket.recv(2048)
 
 
 #Decrypting
-# clientFile = open("clientFile.txt", "wb")
-# cipher = AES.new(session_key, AES.MODE_EAX, nonce)
-# original_data = cipher.decrypt_and_verify(encrypted_file, tag)
-# clientFile.write(original_data)
+clientFile = open("clientFile.txt", "wb")
+cipher = AES.new(session_key, AES.MODE_EAX, nonce)
+original_data = cipher.decrypt_and_verify(encrypted_file, tag)
+clientFile.write(original_data)
 
 print("\nNONCE:\n", type(nonce))
 print("\nTAG:\n", tag)
 print("\nENCRYPTED_FILE:\n", encrypted_file)
 
-client_socket.close() 
+client_socket.close()
