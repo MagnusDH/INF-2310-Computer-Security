@@ -61,11 +61,12 @@ print("\nSending encrypted session key")
 connection.send(encrypted_session_key)
 
 #Open file, read lines and convert to bytes
-serverFile = open("serverFile.txt", "r")
+serverFile = open("serverFile(do_not_delete).txt", "r")
 fileLines = serverFile.read()
 serverFile.close()
 
 #Encrypt serverFile with AES and session key
+print("\nEncrypting file")
 cipher = AES.new(session_key, AES.MODE_EAX)
 nonce = cipher.nonce
 encrypted_file, tag = cipher.encrypt_and_digest(fileLines.encode("utf-8"))
@@ -73,24 +74,19 @@ encrypted_file, tag = cipher.encrypt_and_digest(fileLines.encode("utf-8"))
 #WORK FROM HERE
 
 #send nonce
+print("\nSending nonce")
 connection.send(nonce)
 
 #wait for response
 connection.recv(1024)
 
 #send tag
+print("\nSending tag")
 connection.send(tag)
 
 #wait for response
 connection.recv(1024)
 
 #send encrypted file
+print("\nSending encrypted file")
 connection.send(encrypted_file)
-
-
-        #FLOW OF PROGRAM
-#client -> server: connection request
-#client <- server: accept request
-#Client -> server: send public key
-#Client <- server: encrypt and send session key
-#client <- server: encrypted file
