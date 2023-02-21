@@ -1,3 +1,0 @@
-This file is going to be encrypted.
-Then the server will send it to the client.
-The client will then decrypt this file and save it to memory.

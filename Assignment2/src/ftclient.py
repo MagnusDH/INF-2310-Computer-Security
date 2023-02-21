@@ -56,28 +56,29 @@ decryptor = PKCS1_OAEP.new(keyPair)
 decrypted = decryptor.decrypt(encrypted_session_key)
 session_key = decrypted
 
+print("\nWaiting to receive encrypted file...")
+
 #Receive nonce
-print("\nReceive nonce")
 nonce = client_socket.recv(2048)
+print("\nReceived nonce")
 
 #Send response
 client_socket.send(b"OK")
 
 #Receive tag
-print("\nReceive tag")
 tag = client_socket.recv(2048)
+print("\nReceived tag")
 
 #Send response
 client_socket.send(b"OK")
 
 #Receive encrypted file
-print("\nReceive encrypted file")
 encrypted_file = client_socket.recv(2048)
-
+print("\nReceived encrypted file")
 
 #Decrypting
 print("\nDecrypting file")
-clientFile = open("ReceivedFile(can_be_deleted).txt", "wb")
+clientFile = open("ReceivedFile.txt", "wb")
 cipher = AES.new(session_key, AES.MODE_EAX, nonce)
 original_data = cipher.decrypt_and_verify(encrypted_file, tag)
 print("\nSaving file to memory")

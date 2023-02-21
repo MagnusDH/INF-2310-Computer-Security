@@ -61,7 +61,9 @@ print("\nSending encrypted session key")
 connection.send(encrypted_session_key)
 
 #Open file, read lines and convert to bytes
-serverFile = open("serverFile(do_not_delete).txt", "r")
+# serverFile = open("serverFile.txt", "r")
+print("\nOBS!   By default one file is available ->      'serverFile.txt'")
+serverFile = open(input("Name of file to send: "), "r")
 fileLines = serverFile.read()
 serverFile.close()
 
