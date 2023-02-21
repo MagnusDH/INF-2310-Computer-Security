@@ -4,7 +4,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 
 keyPair = RSA.generate(3072)
 client_public_key = keyPair.publickey().exportKey()
-# session_key = None
+session_key = None
 
 def connect_to_server(host_name, port_number):
     print("Sending connection request to server: ", host_name, "\n")
@@ -29,24 +29,6 @@ def receive_public_key():
     print("Waiting to receive server_public_key\n")
     server_response = client_socket.recv(1024)
     server_public_key = server_response
-
-def send_and_receive_data():
-    while True:
-        #User can write a message
-        message = input("Response to server: ")
-        #Send a message
-        client_socket.send(message.encode())
-        
-        #Close connection if requested
-        if (message.lower() == "close"):
-            print("Closing connection...")
-            client_socket.close()
-            break
-        
-        #Receive response from server
-        print("Waiting for server to respond...")
-        response_data = client_socket.recv(1024).decode()
-        print("Response from server: ", response_data, "\n")
 
 
 #START

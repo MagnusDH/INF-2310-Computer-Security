@@ -3,9 +3,6 @@ import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES, PKCS1_OAEP
 
-keyPair = RSA.generate(3072)
-server_private_key = keyPair.exportKey() 
-server_public_key = keyPair.publickey()
 client_public_key = None
 session_key = b"ThisIsSessionKey"
 
@@ -37,24 +34,6 @@ def connect_to_client():
 
     except:
         print("\nCould not establish connection with client...")
-
-def receive_and_send_data():
-
-    while True:
-        #Receive data
-        print("Waiting for client to respond...\n")
-        receive_data = connection.recv(1024).decode()
-        print("Response from client: ", receive_data, "\n")
-        
-        if receive_data.lower() == "close":
-            print("Closing connection...")
-            connection.close()
-
-        else:
-            #Send data from server
-            response = input("Response to client: ")
-            connection.send(response.encode())
-    
     
 #START
 
@@ -107,18 +86,6 @@ connection.recv(1024)
 
 #send encrypted file
 connection.send(encrypted_file)
-
-
-# # Decrypting
-# clientFile = open("clientFile.txt", "wb")
-# cipher2 = AES.new(session_key, AES.MODE_EAX, nonce)
-# original_data = cipher2.decrypt_and_verify(encrypted_file, tag)
-# clientFile.write(original_data)
-
-
-# print("\nNONCE:\n", cipher.nonce)
-# print("\nTAG:\n", tag)
-# print("\nENCRYPTED_FILE:\n", encrypted_file)
 
 
         #FLOW OF PROGRAM
