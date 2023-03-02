@@ -72,8 +72,8 @@ print("\nEncrypting file")
 cipher = AES.new(session_key, AES.MODE_EAX)
 nonce = cipher.nonce
 encrypted_file, tag = cipher.encrypt_and_digest(fileLines.encode("utf-8"))
-# ciphered_data = cipher.encrypt(fileLines.encode("utf-8"))
-#WORK FROM HERE
+
+print("\nCiphertext:\n", encrypted_file)
 
 #send nonce
 print("\nSending nonce")

@@ -74,7 +74,7 @@ client_socket.send(b"OK")
 
 #Receive encrypted file
 encrypted_file = client_socket.recv(2048)
-print("\nReceived encrypted file")
+print("\nReceived ciphertext:\n", encrypted_file)
 
 #Decrypting
 print("\nDecrypting file")
