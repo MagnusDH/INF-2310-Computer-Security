@@ -10,14 +10,17 @@ import bcrypt
 PASSWORDFILE = 'passwords'
 PASSWORDFILEDELIMITER = ":"
 
-DATABASE = "USERS"
+#Database containing: [id, username, password]
+DATABASE = "users"
+
+LOGGED_IN = False
 
 #Create database if it does not exist
 if not os.path.exists(DATABASE):
-    print("\n\nNO DATABASE, CREATING NEW ONE")
+    print("\nNO DATABASE, CREATING NEW ONE")
     connection = sqlite3.connect(DATABASE)
     cursor = connection.cursor()
-    cursor.execute("CREATE TABLE USERS (id INTEGER PRIMARY KEY, username TEXT, password TEXT)")
+    cursor.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)")
     
     #Commit the changes and close
     connection.commit()
@@ -35,12 +38,16 @@ if not os.path.exists(PASSWORDFILE):
 @app.route('/')
 def home():
     print("\n\nHOME FUNCTION")
+    print("LOGGED_IN = ", LOGGED_IN)
 
     # TODO: Check if user is logged in
     # if user is logged in
     #    return render_template('loggedin.html')
 
-    return render_template('home.html')
+    if(LOGGED_IN == False):
+        return render_template('home.html')
+    else:
+       return render_template('loggedin.html')
 
 
 #Display register form
@@ -54,20 +61,15 @@ def register_get():
 #Handle registration data
 @app.route('/register', methods=['POST'])
 def register_post():
-    print("\n\nREGISTER POST FUNCTION")
+    """Registers a user to databse if unique username and correct password length"""
 
     register_username = request.values["username"]
     register_password = request.values["password"]
     register_matchPassword = request.values["matchpassword"]
-    
-    print("\nUsername: ", register_username)
-    print("Password: ", register_password)
-    print("Match password: ", register_matchPassword)
-
 
     #Check if username already exists
     if(user_exists(register_username) == True):
-        render_template("/register.html", error="Username already exists")
+        return render_template("/register.html", error="Username already exists")
     
     #Check if password is of sufficient length
     if(len(register_password) < 3):
@@ -78,27 +80,19 @@ def register_post():
         return render_template("register.html", error="Entered passwords are not identical")
     
     #Add user to database
-    print("Add user to database...")
     connection = sqlite3.connect(DATABASE)
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO USERS (username, password) VALUES (?, ?)", (register_username, register_password))
+    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (register_username, register_password))
     connection.commit()
     connection.close()
-    # file = open("passwords", "w")
-    # file.write(register_username+"\n")
-    # file.write(register_password)
-    # file.close()
 
     return redirect(location="/", code=200, Response="OK")
-    #Open password file
-    #Write credentials to password file
-    # raise NotImplemented
 
 
 #Display login form
 @app.route('/login', methods=['GET'])
 def login_get():
-    print("\n\nLOG IN GET FUNCTION")
+    """Renders the login page"""
 
     return render_template('login.html')
 
@@ -106,19 +100,41 @@ def login_get():
 #Handle login credentials
 @app.route('/login', methods=['POST'])
 def login_post():
-    print("\n\nLOG IN POST FUNCTION")
+    """Checks if entered username exists in database and if password matches username"""
 
-    raise NotImplemented
+    #Get request values
+    entered_username = request.values["username"]
+    entered_password = request.values["password"]
 
+    #Check if user exists in database
+    if(user_exists(entered_username) == True):
+        connection = sqlite3.connect(DATABASE)
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM users WHERE username=?", (entered_username,))
+        dbAttributes = cursor.fetchall()
 
+        #Check if password matches username i database
+        if(dbAttributes[0][1] == entered_username and dbAttributes[0][2] == entered_password):
+            #SETT USERNAME IN HTML PAGE??????????????????
+            LOGGED_IN = True
+            return render_template('loggedin.html')
 
+        #Password did not match
+        else:
+            return render_template("login.html", error="Invalid password")
+    
+    #Username did not exist in database
+    else:
+        return render_template("login.html", error="Invalid username")
 
 
 #helper functions
 def user_exists(username):
+    """Returns True if given username exists in database"""
+    
     connection = sqlite3.connect(DATABASE)
     cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(*) FROM USERS WHERE username=?", (username,))
+    cursor.execute("SELECT COUNT (*) FROM users WHERE username=?", (username,))
 
     if cursor.fetchone()[0] > 0:
         return True
@@ -128,7 +144,8 @@ def user_exists(username):
 
 #Application start point
 if __name__ == '__main__':
-    print("\n\n\n\n########## STARTING APPLICATION ##########")
+    print("\n########## STARTING APPLICATION ##########")
+    print("LOGGED IN = ", LOGGED_IN)
 
     # TODO: Add TSL
     app.run(debug=True)
