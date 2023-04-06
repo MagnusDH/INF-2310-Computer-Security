@@ -13,7 +13,10 @@ PASSWORDFILEDELIMITER = ":"
 #Database containing: [id, username, password]
 DATABASE = "users"
 
+print("\nSHIT, LOGGED IN IS BEING SET TO False...")
 LOGGED_IN = False
+
+LOGGED_IN_USER = [1]
 
 #Create database if it does not exist
 if not os.path.exists(DATABASE):
@@ -38,30 +41,40 @@ if not os.path.exists(PASSWORDFILE):
 @app.route('/')
 def home():
     print("\n\nHOME FUNCTION")
-    print("LOGGED_IN = ", LOGGED_IN)
+    print("LOGGED IN = ", LOGGED_IN)
 
     # TODO: Check if user is logged in
     # if user is logged in
     #    return render_template('loggedin.html')
 
-    if(LOGGED_IN == False):
+    # if(LOGGED_IN == False):
+    #     return render_template('home.html')
+    # else:
+    #     return render_template("loggedin.html", username=LOGGED_IN_USER)
+
+    if(len(LOGGED_IN_USER) == 0):
         return render_template('home.html')
     else:
-       return render_template('loggedin.html')
+        return render_template("loggedin.html", username=LOGGED_IN_USER[0])
 
+        
 
+#DONE
 #Display register form
 @app.route('/register', methods=['GET'])
 def register_get():
-    print("\n\nREGISTER GET FUNCTION")
+    print("\nREGISTER GET()")
 
     return render_template('register.html')
 
 
+#DONE
 #Handle registration data
 @app.route('/register', methods=['POST'])
 def register_post():
     """Registers a user to databse if unique username and correct password length"""
+    
+    print("\nREGISTER POST()")
 
     register_username = request.values["username"]
     register_password = request.values["password"]
@@ -89,18 +102,26 @@ def register_post():
     return redirect(location="/", code=200, Response="OK")
 
 
+#DONE
 #Display login form
 @app.route('/login', methods=['GET'])
 def login_get():
     """Renders the login page"""
+    print("\nLOGIN GET()")
 
     return render_template('login.html')
 
 
+#DONE
 #Handle login credentials
 @app.route('/login', methods=['POST'])
 def login_post():
-    """Checks if entered username exists in database and if password matches username"""
+    """*Renders the loggedIn page with username if:\n
+            \t-Entered username exists in database\n
+            \t-Entered password matches username\n
+        *If loggin is successful, the logged in state is set to 'logged in'"""
+
+    print("\nLOGIN POST()")
 
     #Get request values
     entered_username = request.values["username"]
@@ -113,11 +134,12 @@ def login_post():
         cursor.execute("SELECT * FROM users WHERE username=?", (entered_username,))
         dbAttributes = cursor.fetchall()
 
-        #Check if password matches username i database
+        #Render 'loggedin' if password matches username i database
         if(dbAttributes[0][1] == entered_username and dbAttributes[0][2] == entered_password):
-            #SETT USERNAME IN HTML PAGE??????????????????
+            LOGGED_IN_USER[0] = entered_username
             LOGGED_IN = True
-            return render_template('loggedin.html')
+            print("\nSETTING LOGGED IN TO: ", LOGGED_IN)
+            return redirect(location="/", code=200, Response="OK")
 
         #Password did not match
         else:
@@ -145,7 +167,6 @@ def user_exists(username):
 #Application start point
 if __name__ == '__main__':
     print("\n########## STARTING APPLICATION ##########")
-    print("LOGGED IN = ", LOGGED_IN)
 
     # TODO: Add TSL
     app.run(debug=True)
