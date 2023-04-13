@@ -1,4 +1,12 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+#TODO
+#ADD TLS/SSL to the application
+#Launch the application on my server
+#Protect the credentials from replay attacks and snooping
+#Protect the password file from dictionary attacks
+#Optional: show log-in attempts?
+
+
+from flask import Flask, render_template, redirect, url_for, request, flash, session, make_response
 import os.path
 
 #Import sqlite3 to create databse for usernames and passwords
@@ -13,12 +21,11 @@ PASSWORDFILEDELIMITER = ":"
 #Database containing: [id, username, password]
 DATABASE = "users"
 
-print("\nSHIT, LOGGED IN IS BEING SET TO False...")
-LOGGED_IN = False
+LOGGED_IN_USER = {"UserName": None, "LoggedIn": False}
 
-LOGGED_IN_USER = [1]
+FAILED_LOGIN_ATTEMPTS = 0
 
-#Create database if it does not exist
+#Initialize database file if it does not exist
 if not os.path.exists(DATABASE):
     print("\nNO DATABASE, CREATING NEW ONE")
     connection = sqlite3.connect(DATABASE)
@@ -33,37 +40,24 @@ app = Flask(__name__)
 # The secret key here is required to maintain sessions in flask
 app.secret_key = b'8852475abf1dcc3c2769f54d0ad64a8b7d9c3a8aa8f35ac4eb7454473a5e454c'
 
-# Initialize Database file if not exists.
-if not os.path.exists(PASSWORDFILE):
-    open(PASSWORDFILE, 'w').close()
-
-
+#DONE
+#Render home-page
 @app.route('/')
 def home():
     print("\n\nHOME FUNCTION")
-    print("LOGGED IN = ", LOGGED_IN)
 
-    # TODO: Check if user is logged in
-    # if user is logged in
-    #    return render_template('loggedin.html')
-
-    # if(LOGGED_IN == False):
-    #     return render_template('home.html')
-    # else:
-    #     return render_template("loggedin.html", username=LOGGED_IN_USER)
-
-    if(len(LOGGED_IN_USER) == 0):
+    #Check if user is logged in or not
+    if(LOGGED_IN_USER["LoggedIn"] == False):
         return render_template('home.html')
     else:
-        return render_template("loggedin.html", username=LOGGED_IN_USER[0])
+        # return render_template("loggedin.html", username=LOGGED_IN_USER[0])
+        return render_template("loggedin.html", username=LOGGED_IN_USER["UserName"])
 
-        
 
 #DONE
 #Display register form
 @app.route('/register', methods=['GET'])
 def register_get():
-    print("\nREGISTER GET()")
 
     return render_template('register.html')
 
@@ -74,8 +68,6 @@ def register_get():
 def register_post():
     """Registers a user to databse if unique username and correct password length"""
     
-    print("\nREGISTER POST()")
-
     register_username = request.values["username"]
     register_password = request.values["password"]
     register_matchPassword = request.values["matchpassword"]
@@ -107,12 +99,11 @@ def register_post():
 @app.route('/login', methods=['GET'])
 def login_get():
     """Renders the login page"""
-    print("\nLOGIN GET()")
 
     return render_template('login.html')
 
 
-#DONE
+#NOT DONE, check cookies
 #Handle login credentials
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -121,7 +112,7 @@ def login_post():
             \t-Entered password matches username\n
         *If loggin is successful, the logged in state is set to 'logged in'"""
 
-    print("\nLOGIN POST()")
+    login_attempts = request.cookies.get("login_attempts", 0, type=int)
 
     #Get request values
     entered_username = request.values["username"]
@@ -136,14 +127,17 @@ def login_post():
 
         #Render 'loggedin' if password matches username i database
         if(dbAttributes[0][1] == entered_username and dbAttributes[0][2] == entered_password):
-            LOGGED_IN_USER[0] = entered_username
-            LOGGED_IN = True
-            print("\nSETTING LOGGED IN TO: ", LOGGED_IN)
+            LOGGED_IN_USER["LoggedIn"] = True
+            LOGGED_IN_USER["UserName"] = entered_username
+
             return redirect(location="/", code=200, Response="OK")
 
         #Password did not match
-        else:
-            return render_template("login.html", error="Invalid password")
+        else:         
+            if(login_attempts >= 5):
+                return render_template("login.html", error="Wrong password entered to many times.\n You can try again in 5 minutes")
+            else:
+                return render_template("login.html", error=("Invalid password. Number of attempts", login_attempts))
     
     #Username did not exist in database
     else:
@@ -151,6 +145,9 @@ def login_post():
 
 
 #helper functions
+
+#DONE
+#Checks if given username exists in database 
 def user_exists(username):
     """Returns True if given username exists in database"""
     
@@ -164,9 +161,22 @@ def user_exists(username):
         return False
 
 
+@app.route("/setCookie", methods = ["POST"])
+def setcookie():
+    print("\nSETTING COOKIE!!!!!!!")
+    response = make_response("Setting a mafakking coockie")
+    response.set_cookie("TITLE", "Maggietits")
+    return response
+
+@app.route("/getCookie")
+def getCookie(cookie_name: str):
+    print("\nGETTING COOKIE: ", cookie_name)
+
+    cookie = request.cookies.get(cookie_name, None)
+    return cookie
+
 #Application start point
 if __name__ == '__main__':
-    print("\n########## STARTING APPLICATION ##########")
 
     # TODO: Add TSL
     app.run(debug=True)
