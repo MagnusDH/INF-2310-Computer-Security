@@ -1,11 +1,3 @@
-#TODO
-#ADD TLS/SSL to the application
-#Launch the application on my server
-#Protect the credentials from replay attacks and snooping
-#Protect the password file from dictionary attacks
-#Optional: show log-in attempts?
-
-
 from flask import Flask, render_template, redirect, url_for, request, flash, session, make_response
 import os.path
 
@@ -40,11 +32,9 @@ app = Flask(__name__)
 # The secret key here is required to maintain sessions in flask
 app.secret_key = b'8852475abf1dcc3c2769f54d0ad64a8b7d9c3a8aa8f35ac4eb7454473a5e454c'
 
-#DONE
 #Render home-page
 @app.route('/')
 def home():
-    print("\n\nHOME FUNCTION")
 
     #Check if user is logged in or not
     if(LOGGED_IN_USER["LoggedIn"] == False):
@@ -54,7 +44,6 @@ def home():
         return render_template("loggedin.html", username=LOGGED_IN_USER["UserName"])
 
 
-#DONE
 #Display register form
 @app.route('/register', methods=['GET'])
 def register_get():
@@ -62,39 +51,53 @@ def register_get():
     return render_template('register.html')
 
 
-#DONE
 #Handle registration data
 @app.route('/register', methods=['POST'])
 def register_post():
     """Registers a user to databse if unique username and correct password length"""
     
+    #Users entered values
     register_username = request.values["username"]
     register_password = request.values["password"]
     register_matchPassword = request.values["matchpassword"]
+
+    contains_big_character = False
+    contains_number = False
 
     #Check if username already exists
     if(user_exists(register_username) == True):
         return render_template("/register.html", error="Username already exists")
     
     #Check if password is of sufficient length
-    if(len(register_password) < 3):
-        return render_template("register.html", error="Password must be of at least 3 characters")
+    if(len(register_password) < 6):
+        return render_template("register.html", error="Password must be of at least 6 characters and contain at least 1 BIG character and 1 integer")
 
     #Check if entered passwords are identical
     if(register_password != register_matchPassword):
         return render_template("register.html", error="Entered passwords are not identical")
     
-    #Add user to database
-    connection = sqlite3.connect(DATABASE)
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (register_username, register_password))
-    connection.commit()
-    connection.close()
+    #Check if password contains a BIG character
+    for char in register_password:
+        if char.isupper():
+            contains_big_character = True
+        elif char.isdigit():
+            contains_number = True
 
-    return redirect(location="/", code=200, Response="OK")
+    if(contains_number == True & contains_big_character == True):
+        #Add user to database
+        connection = sqlite3.connect(DATABASE)
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (register_username, register_password))
+        connection.commit()
+        connection.close()
+
+        return redirect(location="/", code=200, Response="OK")
+
+    else:
+        return render_template("register.html", error="Entered password must contain minimum 6 characters, 1 number and 1 integer")
 
 
-#DONE
+
 #Display login form
 @app.route('/login', methods=['GET'])
 def login_get():
@@ -103,7 +106,6 @@ def login_get():
     return render_template('login.html')
 
 
-#NOT DONE, check cookies
 #Handle login credentials
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -146,8 +148,7 @@ def login_post():
 
 #helper functions
 
-#DONE
-#Checks if given username exists in database 
+#Checks if given username exists in database
 def user_exists(username):
     """Returns True if given username exists in database"""
     
@@ -163,14 +164,12 @@ def user_exists(username):
 
 @app.route("/setCookie", methods = ["POST"])
 def setcookie():
-    print("\nSETTING COOKIE!!!!!!!")
-    response = make_response("Setting a mafakking coockie")
-    response.set_cookie("TITLE", "Maggietits")
+    response = make_response("Setting cookie")
+    response.set_cookie("TITLE", "Maggie")
     return response
 
 @app.route("/getCookie")
 def getCookie(cookie_name: str):
-    print("\nGETTING COOKIE: ", cookie_name)
 
     cookie = request.cookies.get(cookie_name, None)
     return cookie
@@ -178,5 +177,5 @@ def getCookie(cookie_name: str):
 #Application start point
 if __name__ == '__main__':
 
-    # TODO: Add TSL
-    app.run(debug=True)
+    # Add TSL
+     app.run(ssl_context=('cert.pem', 'key.pem'), debug=True, host='0.0.0.0', port=8080)
