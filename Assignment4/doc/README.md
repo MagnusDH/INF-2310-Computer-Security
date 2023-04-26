@@ -1,7 +1,14 @@
-# INF-2310-Assignment4
-Web Authentication
+# Web Authentication
 
-IP-address of server: http://40.91.221.247/
-
-
-ikke signert av en certificate authority (CA), derfor kommer siden til "not secure" nettsiden 
+	# To run the code, open up a terminal in the src folder
+	
+	# run one of the following commands:	
+		python app.py
+		python3 app.py
+	
+	# You may be asked to enter a PEM phrase, because the application is the running HTTPS 		  protocol. If so enter the following passphrase TWO times:
+		1234
+		
+	# When the app is running, Hold in "ctrl" and click one of the HTTPS links in the terminal 		  to open up the web-browser
+	
+	# You may be redirected to a site which warns you that the web-page is not secure. If so, 		  click on "advanced" and "proceed to website/IP-address"

@@ -178,4 +178,4 @@ def getCookie(cookie_name: str):
 if __name__ == '__main__':
 
     # Add TSL
-     app.run(ssl_context=('cert.pem', 'key.pem'), debug=True, host='0.0.0.0', port=8080)
+    app.run(ssl_context=('cert.pem', 'key.pem'), debug=True, host='0.0.0.0', port=8080)
